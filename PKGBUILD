@@ -15,8 +15,8 @@ depends=('libxfce4ui' 'libwnck3' 'libxpresent')
 makedepends=('git' 'xfce4-dev-tools' 'exo')
 provides=('xfwm4')
 conflicts=('xfwm4')
-source=("git+https://gitlab.xfce.org/xfce/xfwm4.git")
-sha256sums=('SKIP')
+source=("git+https://gitlab.xfce.org/xfce/xfwm4.git" "xfwm4-no-smart-placement.patch")
+sha256sums=('SKIP' '2601de1231e22baf999b347bfda6a3577285dc2e941926a10f689fa872acca67')
 
 pkgver() {
   cd xfwm4
@@ -53,7 +53,7 @@ package() {
 prepare() {
   cd xfwm4
 
-  patch --strip=1 --input="${srcdir}/package.patch"
+  patch --strip=1 --input="${srcdir}/xfwm4-no-smart-placement.patch"
 }
 
 # vim:set ts=2 sw=2 et:
