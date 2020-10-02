@@ -4,7 +4,7 @@
 # Contributor: cute.tec@gmail.com
 
 pkgname=xfwm4-git
-pkgver=4.15.1+1+g6117ce1f4
+pkgver=4.15.1+13+g5cce56d02
 pkgrel=1
 pkgdesc="Xfce window manager (git version)"
 arch=('i686' 'x86_64')
