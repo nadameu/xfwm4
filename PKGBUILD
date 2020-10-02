@@ -50,4 +50,10 @@ package() {
   make DESTDIR="${pkgdir}" install
 }
 
+prepare() {
+  cd xfwm4
+
+  patch --strip=1 --input="${srcdir}/package.patch"
+}
+
 # vim:set ts=2 sw=2 et:

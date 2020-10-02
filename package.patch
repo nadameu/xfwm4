@@ -1,0 +1,671 @@
+Somente em b/common: .deps
+Somente em b/helper-dialog: .deps
+Somente em b/po: .intltool-merge-cache.lock
+Somente em b/settings-dialogs: .deps
+diff --color --unified --recursive --text a/settings-dialogs/tweaks-settings.c b/settings-dialogs/tweaks-settings.c
+--- a/settings-dialogs/tweaks-settings.c	2019-05-12 13:45:20.000000000 -0300
++++ b/settings-dialogs/tweaks-settings.c	2020-10-01 16:28:04.253148856 -0300
+@@ -141,6 +141,15 @@
+ }
+ 
+ static void
++cb_activate_placement_none_radio_toggled (GtkToggleButton *toggle, XfconfChannel *channel)
++{
++    if (gtk_toggle_button_get_active (toggle))
++    {
++        xfconf_channel_set_string (channel, "/general/placement_mode", "none");
++    }
++}
++
++static void
+ cb_urgent_blink_button_toggled (GtkToggleButton *toggle, GtkWidget *repeat_urgent_blink)
+ {
+     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (repeat_urgent_blink), FALSE);
+@@ -205,6 +214,7 @@
+     GtkWidget *placement_ratio_scale = GTK_WIDGET (gtk_builder_get_object (builder, "placement_ratio_scale"));
+     GtkWidget *placement_center_option = GTK_WIDGET (gtk_builder_get_object (builder, "placement_center_option"));
+     GtkWidget *placement_mouse_option = GTK_WIDGET (gtk_builder_get_object (builder, "placement_mouse_option"));
++    GtkWidget *placement_none_option = GTK_WIDGET (gtk_builder_get_object (builder, "placement_none_option"));
+ 
+     /* Compositing tab */
+     GtkWidget *use_compositing_check = GTK_WIDGET (gtk_builder_get_object (builder, "use_compositing_check"));
+@@ -260,6 +270,13 @@
+     {
+         gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (placement_center_option), FALSE);
+         gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (placement_mouse_option), TRUE);
++        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (placement_none_option), FALSE);
++    }
++    else if (!strcmp (default_placement, "none"))
++    {
++        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (placement_center_option), FALSE);
++        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (placement_mouse_option), FALSE);
++        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (placement_none_option), TRUE);
+     }
+ 
+     /* not so easy properties */
+@@ -287,6 +304,10 @@
+                       "toggled",
+                       G_CALLBACK (cb_activate_placement_mouse_radio_toggled),
+                       xfwm4_channel);
++    g_signal_connect (G_OBJECT (placement_none_option),
++                      "toggled",
++                      G_CALLBACK (cb_activate_placement_none_radio_toggled),
++                      xfwm4_channel);
+     g_signal_connect (G_OBJECT (use_compositing_check),
+                       "toggled",
+                       G_CALLBACK (cb_use_compositing_check_button_toggled),
+diff --color --unified --recursive --text a/settings-dialogs/xfwm4-tweaks-dialog.glade b/settings-dialogs/xfwm4-tweaks-dialog.glade
+--- a/settings-dialogs/xfwm4-tweaks-dialog.glade	2020-08-09 08:06:54.000000000 -0300
++++ b/settings-dialogs/xfwm4-tweaks-dialog.glade	2020-10-01 16:32:06.239954181 -0300
+@@ -816,6 +816,23 @@
+                                 <property name="position">1</property>
+                               </packing>
+                             </child>
++                            <child>
++                              <object class="GtkRadioButton" id="placement_none_option">
++                                <property name="label" translatable="yes">Whe_rever</property>
++                                <property name="use_action_appearance">False</property>
++                                <property name="visible">True</property>
++                                <property name="can_focus">True</property>
++                                <property name="receives_default">False</property>
++                                <property name="use_underline">True</property>
++                                <property name="draw_indicator">True</property>
++                                <property name="group">placement_center_option</property>
++                              </object>
++                              <packing>
++                                <property name="expand">True</property>
++                                <property name="fill">True</property>
++                                <property name="position">2</property>
++                              </packing>
++                            </child>
+                           </object>
+                         </child>
+                       </object>
+diff --color --unified --recursive --text a/settings-dialogs/xfwm4-tweaks-dialog_ui.h b/settings-dialogs/xfwm4-tweaks-dialog_ui.h
+--- a/settings-dialogs/xfwm4-tweaks-dialog_ui.h	2020-08-09 08:07:13.000000000 -0300
++++ b/settings-dialogs/xfwm4-tweaks-dialog_ui.h	2020-10-01 16:32:10.150046350 -0300
+@@ -424,277 +424,286 @@
+   "property><property name=\"group\">placement_center_option</property></o"
+   "bject><packing><property name=\"expand\">True</property><property name="
+   "\"fill\">True</property><property name=\"position\">1</property></packi"
+-  "ng></child></object></child></object><packing><property name=\"expand\""
+-  ">True</property><property name=\"fill\">True</property><property name=\""
+-  "position\">1</property></packing></child></object><packing><property na"
+-  "me=\"expand\">False</property><property name=\"fill\">False</property><"
+-  "property name=\"position\">2</property></packing></child></object><pack"
+-  "ing><property name=\"position\">4</property></packing></child><child ty"
+-  "pe=\"tab\"><object class=\"GtkLabel\" id=\"label5\"><property name=\"vi"
+-  "sible\">True</property><property name=\"can_focus\">False</property><pr"
+-  "operty name=\"label\" translatable=\"yes\">_Placement</property><proper"
+-  "ty name=\"use_underline\">True</property></object><packing><property na"
+-  "me=\"position\">4</property><property name=\"tab_fill\">False</property"
+-  "></packing></child><child><object class=\"GtkBox\" id=\"vbox7\"><proper"
+-  "ty name=\"visible\">True</property><property name=\"can_focus\">False</"
+-  "property><property name=\"orientation\">vertical</property><property na"
+-  "me=\"border_width\">12</property><property name=\"spacing\">6</property"
+-  "><child><object class=\"GtkCheckButton\" id=\"use_compositing_check\"><"
+-  "property name=\"label\" translatable=\"yes\">_Enable display compositin"
+-  "g</property><property name=\"use_action_appearance\">False</property><p"
+-  "roperty name=\"visible\">True</property><property name=\"can_focus\">Tr"
+-  "ue</property><property name=\"receives_default\">False</property><prope"
+-  "rty name=\"use_underline\">True</property><property name=\"draw_indicat"
+-  "or\">True</property></object><packing><property name=\"expand\">False</"
+-  "property><property name=\"fill\">False</property><property name=\"posit"
+-  "ion\">0</property></packing></child><child><object class=\"GtkScrolledW"
+-  "indow\" id=\"use_compositing_box\"><property name=\"visible\">True</pro"
+-  "perty><property name=\"sensitive\">False</property><property name=\"can"
+-  "_focus\">True</property><property name=\"hscrollbar_policy\">never</pro"
+-  "perty><property name=\"vscrollbar_policy\">automatic</property><child><"
+-  "object class=\"GtkViewport\" id=\"viewport1\"><property name=\"visible\""
+-  ">True</property><property name=\"can_focus\">False</property><property "
+-  "name=\"resize_mode\">queue</property><property name=\"shadow_type\">non"
+-  "e</property><child><object class=\"GtkAlignment\" id=\"alignment3\"><pr"
++  "ng></child><child><object class=\"GtkRadioButton\" id=\"placement_none_"
++  "option\"><property name=\"label\" translatable=\"yes\">Whe_rever</prope"
++  "rty><property name=\"use_action_appearance\">False</property><property "
++  "name=\"visible\">True</property><property name=\"can_focus\">True</prop"
++  "erty><property name=\"receives_default\">False</property><property name"
++  "=\"use_underline\">True</property><property name=\"draw_indicator\">Tru"
++  "e</property><property name=\"group\">placement_center_option</property>"
++  "</object><packing><property name=\"expand\">True</property><property na"
++  "me=\"fill\">True</property><property name=\"position\">2</property></pa"
++  "cking></child></object></child></object><packing><property name=\"expan"
++  "d\">True</property><property name=\"fill\">True</property><property nam"
++  "e=\"position\">1</property></packing></child></object><packing><propert"
++  "y name=\"expand\">False</property><property name=\"fill\">False</proper"
++  "ty><property name=\"position\">2</property></packing></child></object><"
++  "packing><property name=\"position\">4</property></packing></child><chil"
++  "d type=\"tab\"><object class=\"GtkLabel\" id=\"label5\"><property name="
++  "\"visible\">True</property><property name=\"can_focus\">False</property"
++  "><property name=\"label\" translatable=\"yes\">_Placement</property><pr"
++  "operty name=\"use_underline\">True</property></object><packing><propert"
++  "y name=\"position\">4</property><property name=\"tab_fill\">False</prop"
++  "erty></packing></child><child><object class=\"GtkBox\" id=\"vbox7\"><pr"
+   "operty name=\"visible\">True</property><property name=\"can_focus\">Fal"
+-  "se</property><property name=\"bottom_padding\">6</property><property na"
+-  "me=\"left_padding\">12</property><child><object class=\"GtkBox\" id=\"v"
+-  "box8\"><property name=\"visible\">True</property><property name=\"can_f"
+-  "ocus\">False</property><property name=\"orientation\">vertical</propert"
+-  "y><property name=\"spacing\">6</property><child><object class=\"GtkChec"
+-  "kButton\" id=\"unredirect_overlays_check\"><property name=\"label\" tra"
+-  "nslatable=\"yes\">Display _fullscreen overlay windows directly</propert"
+-  "y><property name=\"use_action_appearance\">False</property><property na"
+-  "me=\"visible\">True</property><property name=\"can_focus\">True</proper"
+-  "ty><property name=\"receives_default\">False</property><property name=\""
++  "se</property><property name=\"orientation\">vertical</property><propert"
++  "y name=\"border_width\">12</property><property name=\"spacing\">6</prop"
++  "erty><child><object class=\"GtkCheckButton\" id=\"use_compositing_check"
++  "\"><property name=\"label\" translatable=\"yes\">_Enable display compos"
++  "iting</property><property name=\"use_action_appearance\">False</propert"
++  "y><property name=\"visible\">True</property><property name=\"can_focus\""
++  ">True</property><property name=\"receives_default\">False</property><pr"
++  "operty name=\"use_underline\">True</property><property name=\"draw_indi"
++  "cator\">True</property></object><packing><property name=\"expand\">Fals"
++  "e</property><property name=\"fill\">False</property><property name=\"po"
++  "sition\">0</property></packing></child><child><object class=\"GtkScroll"
++  "edWindow\" id=\"use_compositing_box\"><property name=\"visible\">True</"
++  "property><property name=\"sensitive\">False</property><property name=\""
++  "can_focus\">True</property><property name=\"hscrollbar_policy\">never</"
++  "property><property name=\"vscrollbar_policy\">automatic</property><chil"
++  "d><object class=\"GtkViewport\" id=\"viewport1\"><property name=\"visib"
++  "le\">True</property><property name=\"can_focus\">False</property><prope"
++  "rty name=\"resize_mode\">queue</property><property name=\"shadow_type\""
++  ">none</property><child><object class=\"GtkAlignment\" id=\"alignment3\""
++  "><property name=\"visible\">True</property><property name=\"can_focus\""
++  ">False</property><property name=\"bottom_padding\">6</property><propert"
++  "y name=\"left_padding\">12</property><child><object class=\"GtkBox\" id"
++  "=\"vbox8\"><property name=\"visible\">True</property><property name=\"c"
++  "an_focus\">False</property><property name=\"orientation\">vertical</pro"
++  "perty><property name=\"spacing\">6</property><child><object class=\"Gtk"
++  "CheckButton\" id=\"unredirect_overlays_check\"><property name=\"label\""
++  " translatable=\"yes\">Display _fullscreen overlay windows directly</pro"
++  "perty><property name=\"use_action_appearance\">False</property><propert"
++  "y name=\"visible\">True</property><property name=\"can_focus\">True</pr"
++  "operty><property name=\"receives_default\">False</property><property na"
++  "me=\"use_underline\">True</property><property name=\"draw_indicator\">T"
++  "rue</property></object><packing><property name=\"expand\">False</proper"
++  "ty><property name=\"fill\">True</property><property name=\"position\">0"
++  "</property></packing></child><child><object class=\"GtkCheckButton\" id"
++  "=\"cycle_preview_check\"><property name=\"label\" translatable=\"yes\">"
++  "Show windows preview in place of icons when cycling</property><property"
++  " name=\"use_action_appearance\">False</property><property name=\"visibl"
++  "e\">True</property><property name=\"can_focus\">True</property><propert"
++  "y name=\"receives_default\">False</property><property name=\"use_underl"
++  "ine\">True</property><property name=\"draw_indicator\">True</property><"
++  "/object><packing><property name=\"expand\">False</property><property na"
++  "me=\"fill\">True</property><property name=\"position\">2</property></pa"
++  "cking></child><child><object class=\"GtkCheckButton\" id=\"show_popup_s"
++  "hadow_check\"><property name=\"label\" translatable=\"yes\">Show shadow"
++  "s under pop_up windows</property><property name=\"use_action_appearance"
++  "\">False</property><property name=\"visible\">True</property><property "
++  "name=\"can_focus\">True</property><property name=\"receives_default\">F"
++  "alse</property><property name=\"use_underline\">True</property><propert"
++  "y name=\"draw_indicator\">True</property></object><packing><property na"
++  "me=\"expand\">False</property><property name=\"fill\">True</property><p"
++  "roperty name=\"position\">3</property></packing></child><child><object "
++  "class=\"GtkCheckButton\" id=\"show_dock_shadow_check\"><property name=\""
++  "label\" translatable=\"yes\">Show shadows under _dock windows</property"
++  "><property name=\"use_action_appearance\">False</property><property nam"
++  "e=\"visible\">True</property><property name=\"can_focus\">True</propert"
++  "y><property name=\"receives_default\">False</property><property name=\""
+   "use_underline\">True</property><property name=\"draw_indicator\">True</"
+   "property></object><packing><property name=\"expand\">False</property><p"
+-  "roperty name=\"fill\">True</property><property name=\"position\">0</pro"
+-  "perty></packing></child><child><object class=\"GtkCheckButton\" id=\"cy"
+-  "cle_preview_check\"><property name=\"label\" translatable=\"yes\">Show "
+-  "windows preview in place of icons when cycling</property><property name"
+-  "=\"use_action_appearance\">False</property><property name=\"visible\">T"
+-  "rue</property><property name=\"can_focus\">True</property><property nam"
+-  "e=\"receives_default\">False</property><property name=\"use_underline\""
+-  ">True</property><property name=\"draw_indicator\">True</property></obje"
+-  "ct><packing><property name=\"expand\">False</property><property name=\""
+-  "fill\">True</property><property name=\"position\">2</property></packing"
+-  "></child><child><object class=\"GtkCheckButton\" id=\"show_popup_shadow"
+-  "_check\"><property name=\"label\" translatable=\"yes\">Show shadows und"
+-  "er pop_up windows</property><property name=\"use_action_appearance\">Fa"
+-  "lse</property><property name=\"visible\">True</property><property name="
+-  "\"can_focus\">True</property><property name=\"receives_default\">False<"
+-  "/property><property name=\"use_underline\">True</property><property nam"
+-  "e=\"draw_indicator\">True</property></object><packing><property name=\""
+-  "expand\">False</property><property name=\"fill\">True</property><proper"
+-  "ty name=\"position\">3</property></packing></child><child><object class"
+-  "=\"GtkCheckButton\" id=\"show_dock_shadow_check\"><property name=\"labe"
+-  "l\" translatable=\"yes\">Show shadows under _dock windows</property><pr"
+-  "operty name=\"use_action_appearance\">False</property><property name=\""
+-  "visible\">True</property><property name=\"can_focus\">True</property><p"
+-  "roperty name=\"receives_default\">False</property><property name=\"use_"
+-  "underline\">True</property><property name=\"draw_indicator\">True</prop"
+-  "erty></object><packing><property name=\"expand\">False</property><prope"
+-  "rty name=\"fill\">True</property><property name=\"position\">4</propert"
+-  "y></packing></child><child><object class=\"GtkCheckButton\" id=\"show_f"
+-  "rame_shadow_check\"><property name=\"label\" translatable=\"yes\">Show "
+-  "shadows under _regular windows</property><property name=\"use_action_ap"
+-  "pearance\">False</property><property name=\"visible\">True</property><p"
+-  "roperty name=\"can_focus\">True</property><property name=\"receives_def"
+-  "ault\">False</property><property name=\"use_underline\">True</property>"
+-  "<property name=\"draw_indicator\">True</property></object><packing><pro"
+-  "perty name=\"expand\">False</property><property name=\"fill\">True</pro"
+-  "perty><property name=\"position\">5</property></packing></child><child>"
+-  "<object class=\"GtkLabel\" id=\"label12\"><property name=\"visible\">Tr"
+-  "ue</property><property name=\"can_focus\">False</property><property nam"
+-  "e=\"xalign\">0</property><property name=\"label\" translatable=\"yes\">"
+-  "Opaci_ty of window decorations:</property><property name=\"use_underlin"
+-  "e\">True</property><property name=\"mnemonic_widget\">frame_opacity_sca"
+-  "le</property></object><packing><property name=\"expand\">False</propert"
+-  "y><property name=\"fill\">True</property><property name=\"position\">6<"
+-  "/property></packing></child><child><object class=\"GtkAlignment\" id=\""
+-  "alignment5\"><property name=\"visible\">True</property><property name=\""
+-  "can_focus\">False</property><property name=\"top_padding\">2</property>"
+-  "<property name=\"left_padding\">12</property><child><object class=\"Gtk"
+-  "Box\" id=\"hbox3\"><property name=\"visible\">True</property><property "
+-  "name=\"can_focus\">False</property><property name=\"orientation\">horiz"
+-  "ontal</property><child><object class=\"GtkLabel\" id=\"label17\"><prope"
+-  "rty name=\"visible\">True</property><property name=\"can_focus\">False<"
+-  "/property><property name=\"label\" translatable=\"yes\">&lt;i&gt;Transp"
+-  "arent&lt;/i&gt;</property><property name=\"use_markup\">True</property>"
+-  "</object><packing><property name=\"expand\">False</property><property n"
+-  "ame=\"fill\">False</property><property name=\"position\">0</property></"
+-  "packing></child><child><object class=\"GtkScale\" id=\"frame_opacity_sc"
+-  "ale\"><property name=\"visible\">True</property><property name=\"can_fo"
+-  "cus\">True</property><property name=\"orientation\">horizontal</propert"
+-  "y><property name=\"adjustment\">adjustment2</property><property name=\""
+-  "restrict_to_fill_level\">False</property><property name=\"draw_value\">"
+-  "False</property></object><packing><property name=\"expand\">True</prope"
+-  "rty><property name=\"fill\">True</property><property name=\"position\">"
+-  "1</property></packing></child><child><object class=\"GtkLabel\" id=\"la"
+-  "bel18\"><property name=\"visible\">True</property><property name=\"can_"
+-  "focus\">False</property><property name=\"label\" translatable=\"yes\">&"
+-  "lt;i&gt;Opaque&lt;/i&gt;</property><property name=\"use_markup\">True</"
+-  "property></object><packing><property name=\"expand\">False</property><p"
+-  "roperty name=\"fill\">False</property><property name=\"position\">2</pr"
+-  "operty></packing></child></object></child></object><packing><property n"
+-  "ame=\"expand\">False</property><property name=\"fill\">False</property>"
+-  "<property name=\"position\">7</property></packing></child><child><objec"
+-  "t class=\"GtkLabel\" id=\"label13\"><property name=\"visible\">True</pr"
+-  "operty><property name=\"can_focus\">False</property><property name=\"xa"
+-  "lign\">0</property><property name=\"label\" translatable=\"yes\">Opacit"
+-  "y of _inactive windows:</property><property name=\"use_underline\">True"
+-  "</property><property name=\"mnemonic_widget\">inactive_opacity_scale</p"
++  "roperty name=\"fill\">True</property><property name=\"position\">4</pro"
++  "perty></packing></child><child><object class=\"GtkCheckButton\" id=\"sh"
++  "ow_frame_shadow_check\"><property name=\"label\" translatable=\"yes\">S"
++  "how shadows under _regular windows</property><property name=\"use_actio"
++  "n_appearance\">False</property><property name=\"visible\">True</propert"
++  "y><property name=\"can_focus\">True</property><property name=\"receives"
++  "_default\">False</property><property name=\"use_underline\">True</prope"
++  "rty><property name=\"draw_indicator\">True</property></object><packing>"
++  "<property name=\"expand\">False</property><property name=\"fill\">True<"
++  "/property><property name=\"position\">5</property></packing></child><ch"
++  "ild><object class=\"GtkLabel\" id=\"label12\"><property name=\"visible\""
++  ">True</property><property name=\"can_focus\">False</property><property "
++  "name=\"xalign\">0</property><property name=\"label\" translatable=\"yes"
++  "\">Opaci_ty of window decorations:</property><property name=\"use_under"
++  "line\">True</property><property name=\"mnemonic_widget\">frame_opacity_"
++  "scale</property></object><packing><property name=\"expand\">False</prop"
++  "erty><property name=\"fill\">True</property><property name=\"position\""
++  ">6</property></packing></child><child><object class=\"GtkAlignment\" id"
++  "=\"alignment5\"><property name=\"visible\">True</property><property nam"
++  "e=\"can_focus\">False</property><property name=\"top_padding\">2</prope"
++  "rty><property name=\"left_padding\">12</property><child><object class=\""
++  "GtkBox\" id=\"hbox3\"><property name=\"visible\">True</property><proper"
++  "ty name=\"can_focus\">False</property><property name=\"orientation\">ho"
++  "rizontal</property><child><object class=\"GtkLabel\" id=\"label17\"><pr"
++  "operty name=\"visible\">True</property><property name=\"can_focus\">Fal"
++  "se</property><property name=\"label\" translatable=\"yes\">&lt;i&gt;Tra"
++  "nsparent&lt;/i&gt;</property><property name=\"use_markup\">True</proper"
++  "ty></object><packing><property name=\"expand\">False</property><propert"
++  "y name=\"fill\">False</property><property name=\"position\">0</property"
++  "></packing></child><child><object class=\"GtkScale\" id=\"frame_opacity"
++  "_scale\"><property name=\"visible\">True</property><property name=\"can"
++  "_focus\">True</property><property name=\"orientation\">horizontal</prop"
++  "erty><property name=\"adjustment\">adjustment2</property><property name"
++  "=\"restrict_to_fill_level\">False</property><property name=\"draw_value"
++  "\">False</property></object><packing><property name=\"expand\">True</pr"
++  "operty><property name=\"fill\">True</property><property name=\"position"
++  "\">1</property></packing></child><child><object class=\"GtkLabel\" id=\""
++  "label18\"><property name=\"visible\">True</property><property name=\"ca"
++  "n_focus\">False</property><property name=\"label\" translatable=\"yes\""
++  ">&lt;i&gt;Opaque&lt;/i&gt;</property><property name=\"use_markup\">True"
++  "</property></object><packing><property name=\"expand\">False</property>"
++  "<property name=\"fill\">False</property><property name=\"position\">2</"
++  "property></packing></child></object></child></object><packing><property"
++  " name=\"expand\">False</property><property name=\"fill\">False</propert"
++  "y><property name=\"position\">7</property></packing></child><child><obj"
++  "ect class=\"GtkLabel\" id=\"label13\"><property name=\"visible\">True</"
++  "property><property name=\"can_focus\">False</property><property name=\""
++  "xalign\">0</property><property name=\"label\" translatable=\"yes\">Opac"
++  "ity of _inactive windows:</property><property name=\"use_underline\">Tr"
++  "ue</property><property name=\"mnemonic_widget\">inactive_opacity_scale<"
++  "/property></object><packing><property name=\"expand\">False</property><"
++  "property name=\"fill\">False</property><property name=\"position\">8</p"
++  "roperty></packing></child><child><object class=\"GtkAlignment\" id=\"al"
++  "ignment6\"><property name=\"visible\">True</property><property name=\"c"
++  "an_focus\">False</property><property name=\"top_padding\">2</property><"
++  "property name=\"left_padding\">12</property><child><object class=\"GtkB"
++  "ox\" id=\"hbox4\"><property name=\"visible\">True</property><property n"
++  "ame=\"can_focus\">False</property><property name=\"orientation\">horizo"
++  "ntal</property><child><object class=\"GtkLabel\" id=\"label19\"><proper"
++  "ty name=\"visible\">True</property><property name=\"can_focus\">False</"
++  "property><property name=\"label\" translatable=\"yes\">&lt;i&gt;Transpa"
++  "rent&lt;/i&gt;</property><property name=\"use_markup\">True</property><"
++  "/object><packing><property name=\"expand\">False</property><property na"
++  "me=\"fill\">False</property><property name=\"position\">0</property></p"
++  "acking></child><child><object class=\"GtkScale\" id=\"inactive_opacity_"
++  "scale\"><property name=\"visible\">True</property><property name=\"can_"
++  "focus\">True</property><property name=\"orientation\">horizontal</prope"
++  "rty><property name=\"adjustment\">adjustment3</property><property name="
++  "\"restrict_to_fill_level\">False</property><property name=\"draw_value\""
++  ">False</property></object><packing><property name=\"expand\">True</prop"
++  "erty><property name=\"fill\">True</property><property name=\"position\""
++  ">1</property></packing></child><child><object class=\"GtkLabel\" id=\"l"
++  "abel20\"><property name=\"visible\">True</property><property name=\"can"
++  "_focus\">False</property><property name=\"label\" translatable=\"yes\">"
++  "&lt;i&gt;Opaque&lt;/i&gt;</property><property name=\"use_markup\">True<"
++  "/property></object><packing><property name=\"expand\">False</property><"
++  "property name=\"fill\">False</property><property name=\"position\">2</p"
++  "roperty></packing></child></object></child></object><packing><property "
++  "name=\"expand\">False</property><property name=\"fill\">False</property"
++  "><property name=\"position\">9</property></packing></child><child><obje"
++  "ct class=\"GtkLabel\" id=\"label14\"><property name=\"visible\">True</p"
++  "roperty><property name=\"can_focus\">False</property><property name=\"x"
++  "align\">0</property><property name=\"label\" translatable=\"yes\">Opaci"
++  "ty of windows during _move:</property><property name=\"use_underline\">"
++  "True</property><property name=\"mnemonic_widget\">move_opacity_scale</p"
+   "roperty></object><packing><property name=\"expand\">False</property><pr"
+-  "operty name=\"fill\">False</property><property name=\"position\">8</pro"
+-  "perty></packing></child><child><object class=\"GtkAlignment\" id=\"alig"
+-  "nment6\"><property name=\"visible\">True</property><property name=\"can"
+-  "_focus\">False</property><property name=\"top_padding\">2</property><pr"
+-  "operty name=\"left_padding\">12</property><child><object class=\"GtkBox"
+-  "\" id=\"hbox4\"><property name=\"visible\">True</property><property nam"
+-  "e=\"can_focus\">False</property><property name=\"orientation\">horizont"
+-  "al</property><child><object class=\"GtkLabel\" id=\"label19\"><property"
+-  " name=\"visible\">True</property><property name=\"can_focus\">False</pr"
+-  "operty><property name=\"label\" translatable=\"yes\">&lt;i&gt;Transpare"
+-  "nt&lt;/i&gt;</property><property name=\"use_markup\">True</property></o"
+-  "bject><packing><property name=\"expand\">False</property><property name"
+-  "=\"fill\">False</property><property name=\"position\">0</property></pac"
+-  "king></child><child><object class=\"GtkScale\" id=\"inactive_opacity_sc"
++  "operty name=\"fill\">False</property><property name=\"position\">10</pr"
++  "operty></packing></child><child><object class=\"GtkAlignment\" id=\"ali"
++  "gnment7\"><property name=\"visible\">True</property><property name=\"ca"
++  "n_focus\">False</property><property name=\"top_padding\">2</property><p"
++  "roperty name=\"left_padding\">12</property><child><object class=\"GtkBo"
++  "x\" id=\"hbox5\"><property name=\"visible\">True</property><property na"
++  "me=\"can_focus\">False</property><property name=\"orientation\">horizon"
++  "tal</property><child><object class=\"GtkLabel\" id=\"label21\"><propert"
++  "y name=\"visible\">True</property><property name=\"can_focus\">False</p"
++  "roperty><property name=\"label\" translatable=\"yes\">&lt;i&gt;Transpar"
++  "ent&lt;/i&gt;</property><property name=\"use_markup\">True</property></"
++  "object><packing><property name=\"expand\">False</property><property nam"
++  "e=\"fill\">False</property><property name=\"position\">0</property></pa"
++  "cking></child><child><object class=\"GtkScale\" id=\"move_opacity_scale"
++  "\"><property name=\"visible\">True</property><property name=\"can_focus"
++  "\">True</property><property name=\"orientation\">horizontal</property><"
++  "property name=\"adjustment\">adjustment4</property><property name=\"res"
++  "trict_to_fill_level\">False</property><property name=\"draw_value\">Fal"
++  "se</property></object><packing><property name=\"expand\">True</property"
++  "><property name=\"fill\">True</property><property name=\"position\">1</"
++  "property></packing></child><child><object class=\"GtkLabel\" id=\"label"
++  "22\"><property name=\"visible\">True</property><property name=\"can_foc"
++  "us\">False</property><property name=\"label\" translatable=\"yes\">&lt;"
++  "i&gt;Opaque&lt;/i&gt;</property><property name=\"use_markup\">True</pro"
++  "perty></object><packing><property name=\"expand\">False</property><prop"
++  "erty name=\"fill\">False</property><property name=\"position\">2</prope"
++  "rty></packing></child></object></child></object><packing><property name"
++  "=\"expand\">False</property><property name=\"fill\">False</property><pr"
++  "operty name=\"position\">11</property></packing></child><child><object "
++  "class=\"GtkLabel\" id=\"label15\"><property name=\"visible\">True</prop"
++  "erty><property name=\"can_focus\">False</property><property name=\"xali"
++  "gn\">0</property><property name=\"label\" translatable=\"yes\">Opacity "
++  "of windows during resi_ze:</property><property name=\"use_underline\">T"
++  "rue</property><property name=\"mnemonic_widget\">resize_opacity_scale</"
++  "property></object><packing><property name=\"expand\">False</property><p"
++  "roperty name=\"fill\">False</property><property name=\"position\">12</p"
++  "roperty></packing></child><child><object class=\"GtkAlignment\" id=\"al"
++  "ignment8\"><property name=\"visible\">True</property><property name=\"c"
++  "an_focus\">False</property><property name=\"top_padding\">2</property><"
++  "property name=\"left_padding\">12</property><child><object class=\"GtkB"
++  "ox\" id=\"hbox6\"><property name=\"visible\">True</property><property n"
++  "ame=\"can_focus\">False</property><property name=\"orientation\">horizo"
++  "ntal</property><child><object class=\"GtkLabel\" id=\"label23\"><proper"
++  "ty name=\"visible\">True</property><property name=\"can_focus\">False</"
++  "property><property name=\"label\" translatable=\"yes\">&lt;i&gt;Transpa"
++  "rent&lt;/i&gt;</property><property name=\"use_markup\">True</property><"
++  "/object><packing><property name=\"expand\">False</property><property na"
++  "me=\"fill\">False</property><property name=\"position\">0</property></p"
++  "acking></child><child><object class=\"GtkScale\" id=\"resize_opacity_sc"
+   "ale\"><property name=\"visible\">True</property><property name=\"can_fo"
+   "cus\">True</property><property name=\"orientation\">horizontal</propert"
+-  "y><property name=\"adjustment\">adjustment3</property><property name=\""
++  "y><property name=\"adjustment\">adjustment5</property><property name=\""
+   "restrict_to_fill_level\">False</property><property name=\"draw_value\">"
+   "False</property></object><packing><property name=\"expand\">True</prope"
+   "rty><property name=\"fill\">True</property><property name=\"position\">"
+   "1</property></packing></child><child><object class=\"GtkLabel\" id=\"la"
+-  "bel20\"><property name=\"visible\">True</property><property name=\"can_"
++  "bel24\"><property name=\"visible\">True</property><property name=\"can_"
+   "focus\">False</property><property name=\"label\" translatable=\"yes\">&"
+   "lt;i&gt;Opaque&lt;/i&gt;</property><property name=\"use_markup\">True</"
+   "property></object><packing><property name=\"expand\">False</property><p"
+   "roperty name=\"fill\">False</property><property name=\"position\">2</pr"
+   "operty></packing></child></object></child></object><packing><property n"
+   "ame=\"expand\">False</property><property name=\"fill\">False</property>"
+-  "<property name=\"position\">9</property></packing></child><child><objec"
+-  "t class=\"GtkLabel\" id=\"label14\"><property name=\"visible\">True</pr"
+-  "operty><property name=\"can_focus\">False</property><property name=\"xa"
+-  "lign\">0</property><property name=\"label\" translatable=\"yes\">Opacit"
+-  "y of windows during _move:</property><property name=\"use_underline\">T"
+-  "rue</property><property name=\"mnemonic_widget\">move_opacity_scale</pr"
+-  "operty></object><packing><property name=\"expand\">False</property><pro"
+-  "perty name=\"fill\">False</property><property name=\"position\">10</pro"
+-  "perty></packing></child><child><object class=\"GtkAlignment\" id=\"alig"
+-  "nment7\"><property name=\"visible\">True</property><property name=\"can"
+-  "_focus\">False</property><property name=\"top_padding\">2</property><pr"
+-  "operty name=\"left_padding\">12</property><child><object class=\"GtkBox"
+-  "\" id=\"hbox5\"><property name=\"visible\">True</property><property nam"
+-  "e=\"can_focus\">False</property><property name=\"orientation\">horizont"
+-  "al</property><child><object class=\"GtkLabel\" id=\"label21\"><property"
+-  " name=\"visible\">True</property><property name=\"can_focus\">False</pr"
+-  "operty><property name=\"label\" translatable=\"yes\">&lt;i&gt;Transpare"
+-  "nt&lt;/i&gt;</property><property name=\"use_markup\">True</property></o"
+-  "bject><packing><property name=\"expand\">False</property><property name"
+-  "=\"fill\">False</property><property name=\"position\">0</property></pac"
+-  "king></child><child><object class=\"GtkScale\" id=\"move_opacity_scale\""
+-  "><property name=\"visible\">True</property><property name=\"can_focus\""
+-  ">True</property><property name=\"orientation\">horizontal</property><pr"
+-  "operty name=\"adjustment\">adjustment4</property><property name=\"restr"
+-  "ict_to_fill_level\">False</property><property name=\"draw_value\">False"
+-  "</property></object><packing><property name=\"expand\">True</property><"
+-  "property name=\"fill\">True</property><property name=\"position\">1</pr"
+-  "operty></packing></child><child><object class=\"GtkLabel\" id=\"label22"
+-  "\"><property name=\"visible\">True</property><property name=\"can_focus"
+-  "\">False</property><property name=\"label\" translatable=\"yes\">&lt;i&"
+-  "gt;Opaque&lt;/i&gt;</property><property name=\"use_markup\">True</prope"
+-  "rty></object><packing><property name=\"expand\">False</property><proper"
+-  "ty name=\"fill\">False</property><property name=\"position\">2</propert"
+-  "y></packing></child></object></child></object><packing><property name=\""
+-  "expand\">False</property><property name=\"fill\">False</property><prope"
+-  "rty name=\"position\">11</property></packing></child><child><object cla"
+-  "ss=\"GtkLabel\" id=\"label15\"><property name=\"visible\">True</propert"
+-  "y><property name=\"can_focus\">False</property><property name=\"xalign\""
+-  ">0</property><property name=\"label\" translatable=\"yes\">Opacity of w"
+-  "indows during resi_ze:</property><property name=\"use_underline\">True<"
+-  "/property><property name=\"mnemonic_widget\">resize_opacity_scale</prop"
+-  "erty></object><packing><property name=\"expand\">False</property><prope"
+-  "rty name=\"fill\">False</property><property name=\"position\">12</prope"
+-  "rty></packing></child><child><object class=\"GtkAlignment\" id=\"alignm"
+-  "ent8\"><property name=\"visible\">True</property><property name=\"can_f"
+-  "ocus\">False</property><property name=\"top_padding\">2</property><prop"
+-  "erty name=\"left_padding\">12</property><child><object class=\"GtkBox\""
+-  " id=\"hbox6\"><property name=\"visible\">True</property><property name="
+-  "\"can_focus\">False</property><property name=\"orientation\">horizontal"
+-  "</property><child><object class=\"GtkLabel\" id=\"label23\"><property n"
+-  "ame=\"visible\">True</property><property name=\"can_focus\">False</prop"
+-  "erty><property name=\"label\" translatable=\"yes\">&lt;i&gt;Transparent"
+-  "&lt;/i&gt;</property><property name=\"use_markup\">True</property></obj"
+-  "ect><packing><property name=\"expand\">False</property><property name=\""
+-  "fill\">False</property><property name=\"position\">0</property></packin"
+-  "g></child><child><object class=\"GtkScale\" id=\"resize_opacity_scale\""
++  "<property name=\"position\">13</property></packing></child><child><obje"
++  "ct class=\"GtkLabel\" id=\"label16\"><property name=\"visible\">True</p"
++  "roperty><property name=\"can_focus\">False</property><property name=\"x"
++  "align\">0</property><property name=\"label\" translatable=\"yes\">Opaci"
++  "ty of popup wi_ndows:</property><property name=\"use_underline\">True</"
++  "property><property name=\"mnemonic_widget\">popup_opacity_scale</proper"
++  "ty></object><packing><property name=\"expand\">False</property><propert"
++  "y name=\"fill\">False</property><property name=\"position\">14</propert"
++  "y></packing></child><child><object class=\"GtkAlignment\" id=\"alignmen"
++  "t9\"><property name=\"visible\">True</property><property name=\"can_foc"
++  "us\">False</property><property name=\"top_padding\">2</property><proper"
++  "ty name=\"left_padding\">12</property><child><object class=\"GtkBox\" i"
++  "d=\"hbox7\"><property name=\"visible\">True</property><property name=\""
++  "can_focus\">False</property><property name=\"orientation\">horizontal</"
++  "property><child><object class=\"GtkLabel\" id=\"label25\"><property nam"
++  "e=\"visible\">True</property><property name=\"can_focus\">False</proper"
++  "ty><property name=\"label\" translatable=\"yes\">&lt;i&gt;Transparent&l"
++  "t;/i&gt;</property><property name=\"use_markup\">True</property></objec"
++  "t><packing><property name=\"expand\">False</property><property name=\"f"
++  "ill\">False</property><property name=\"position\">0</property></packing"
++  "></child><child><object class=\"GtkScale\" id=\"popup_opacity_scale\"><"
++  "property name=\"visible\">True</property><property name=\"can_focus\">T"
++  "rue</property><property name=\"orientation\">horizontal</property><prop"
++  "erty name=\"adjustment\">adjustment6</property><property name=\"restric"
++  "t_to_fill_level\">False</property><property name=\"draw_value\">False</"
++  "property></object><packing><property name=\"expand\">True</property><pr"
++  "operty name=\"fill\">True</property><property name=\"position\">1</prop"
++  "erty></packing></child><child><object class=\"GtkLabel\" id=\"label26\""
+   "><property name=\"visible\">True</property><property name=\"can_focus\""
+-  ">True</property><property name=\"orientation\">horizontal</property><pr"
+-  "operty name=\"adjustment\">adjustment5</property><property name=\"restr"
+-  "ict_to_fill_level\">False</property><property name=\"draw_value\">False"
+-  "</property></object><packing><property name=\"expand\">True</property><"
+-  "property name=\"fill\">True</property><property name=\"position\">1</pr"
+-  "operty></packing></child><child><object class=\"GtkLabel\" id=\"label24"
+-  "\"><property name=\"visible\">True</property><property name=\"can_focus"
+-  "\">False</property><property name=\"label\" translatable=\"yes\">&lt;i&"
+-  "gt;Opaque&lt;/i&gt;</property><property name=\"use_markup\">True</prope"
+-  "rty></object><packing><property name=\"expand\">False</property><proper"
+-  "ty name=\"fill\">False</property><property name=\"position\">2</propert"
+-  "y></packing></child></object></child></object><packing><property name=\""
+-  "expand\">False</property><property name=\"fill\">False</property><prope"
+-  "rty name=\"position\">13</property></packing></child><child><object cla"
+-  "ss=\"GtkLabel\" id=\"label16\"><property name=\"visible\">True</propert"
+-  "y><property name=\"can_focus\">False</property><property name=\"xalign\""
+-  ">0</property><property name=\"label\" translatable=\"yes\">Opacity of p"
+-  "opup wi_ndows:</property><property name=\"use_underline\">True</propert"
+-  "y><property name=\"mnemonic_widget\">popup_opacity_scale</property></ob"
+-  "ject><packing><property name=\"expand\">False</property><property name="
+-  "\"fill\">False</property><property name=\"position\">14</property></pac"
+-  "king></child><child><object class=\"GtkAlignment\" id=\"alignment9\"><p"
+-  "roperty name=\"visible\">True</property><property name=\"can_focus\">Fa"
+-  "lse</property><property name=\"top_padding\">2</property><property name"
+-  "=\"left_padding\">12</property><child><object class=\"GtkBox\" id=\"hbo"
+-  "x7\"><property name=\"visible\">True</property><property name=\"can_foc"
+-  "us\">False</property><property name=\"orientation\">horizontal</propert"
+-  "y><child><object class=\"GtkLabel\" id=\"label25\"><property name=\"vis"
+-  "ible\">True</property><property name=\"can_focus\">False</property><pro"
+-  "perty name=\"label\" translatable=\"yes\">&lt;i&gt;Transparent&lt;/i&gt"
+-  ";</property><property name=\"use_markup\">True</property></object><pack"
+-  "ing><property name=\"expand\">False</property><property name=\"fill\">F"
+-  "alse</property><property name=\"position\">0</property></packing></chil"
+-  "d><child><object class=\"GtkScale\" id=\"popup_opacity_scale\"><propert"
+-  "y name=\"visible\">True</property><property name=\"can_focus\">True</pr"
+-  "operty><property name=\"orientation\">horizontal</property><property na"
+-  "me=\"adjustment\">adjustment6</property><property name=\"restrict_to_fi"
+-  "ll_level\">False</property><property name=\"draw_value\">False</propert"
+-  "y></object><packing><property name=\"expand\">True</property><property "
+-  "name=\"fill\">True</property><property name=\"position\">1</property></"
+-  "packing></child><child><object class=\"GtkLabel\" id=\"label26\"><prope"
+-  "rty name=\"visible\">True</property><property name=\"can_focus\">False<"
+-  "/property><property name=\"label\" translatable=\"yes\">&lt;i&gt;Opaque"
+-  "&lt;/i&gt;</property><property name=\"use_markup\">True</property></obj"
+-  "ect><packing><property name=\"expand\">False</property><property name=\""
+-  "fill\">False</property><property name=\"position\">2</property></packin"
+-  "g></child></object></child></object><packing><property name=\"expand\">"
+-  "False</property><property name=\"fill\">False</property><property name="
+-  "\"position\">15</property></packing></child></object></child></object><"
+-  "/child></object></child></object><packing><property name=\"expand\">Tru"
+-  "e</property><property name=\"fill\">True</property><property name=\"pos"
+-  "ition\">1</property></packing></child></object><packing><property name="
+-  "\"position\">5</property></packing></child><child type=\"tab\"><object "
+-  "class=\"GtkLabel\" id=\"label6\"><property name=\"visible\">True</prope"
+-  "rty><property name=\"can_focus\">False</property><property name=\"label"
+-  "\" translatable=\"yes\">C_ompositor</property><property name=\"use_unde"
+-  "rline\">True</property></object><packing><property name=\"position\">5<"
+-  "/property><property name=\"tab_fill\">False</property></packing></child"
+-  "></object><packing><property name=\"expand\">True</property><property n"
+-  "ame=\"fill\">True</property><property name=\"position\">1</property></p"
+-  "acking></child></object></child><action-widgets><action-widget response"
+-  "=\"-11\">button2</action-widget><action-widget response=\"0\">button1</"
+-  "action-widget></action-widgets></object></interface>"
++  ">False</property><property name=\"label\" translatable=\"yes\">&lt;i&gt"
++  ";Opaque&lt;/i&gt;</property><property name=\"use_markup\">True</propert"
++  "y></object><packing><property name=\"expand\">False</property><property"
++  " name=\"fill\">False</property><property name=\"position\">2</property>"
++  "</packing></child></object></child></object><packing><property name=\"e"
++  "xpand\">False</property><property name=\"fill\">False</property><proper"
++  "ty name=\"position\">15</property></packing></child></object></child></"
++  "object></child></object></child></object><packing><property name=\"expa"
++  "nd\">True</property><property name=\"fill\">True</property><property na"
++  "me=\"position\">1</property></packing></child></object><packing><proper"
++  "ty name=\"position\">5</property></packing></child><child type=\"tab\">"
++  "<object class=\"GtkLabel\" id=\"label6\"><property name=\"visible\">Tru"
++  "e</property><property name=\"can_focus\">False</property><property name"
++  "=\"label\" translatable=\"yes\">C_ompositor</property><property name=\""
++  "use_underline\">True</property></object><packing><property name=\"posit"
++  "ion\">5</property><property name=\"tab_fill\">False</property></packing"
++  "></child></object><packing><property name=\"expand\">True</property><pr"
++  "operty name=\"fill\">True</property><property name=\"position\">1</prop"
++  "erty></packing></child></object></child><action-widgets><action-widget "
++  "response=\"-11\">button2</action-widget><action-widget response=\"0\">b"
++  "utton1</action-widget></action-widgets></object></interface>"
+ };
+ 
+-static const unsigned tweaks_dialog_ui_length = 46512u;
++static const unsigned tweaks_dialog_ui_length = 47126u;
+ 
+Somente em b/src: .deps
+diff --color --unified --recursive --text a/src/placement.c b/src/placement.c
+--- a/src/placement.c	2019-07-08 15:55:46.000000000 -0300
++++ b/src/placement.c	2020-10-01 16:33:55.932406843 -0300
+@@ -777,7 +777,11 @@
+     myScreenFindMonitorAtPoint (screen_info, msx, msy, &rect);
+     is_transient = clientIsTransient (c);
+ 
+-    if (position || is_transient || (c->type & (WINDOW_TYPE_DONT_PLACE | WINDOW_TYPE_DIALOG)))
++    if (screen_info->params->placement_mode == PLACE_NONE)
++    {
++        place = FALSE;
++    }
++    else if (position || is_transient || (c->type & (WINDOW_TYPE_DONT_PLACE | WINDOW_TYPE_DIALOG)))
+     {
+         if (!position && is_transient && (c2 = clientGetTransient (c)))
+         {
+diff --color --unified --recursive --text a/src/settings.c b/src/settings.c
+--- a/src/settings.c	2020-08-09 08:06:54.000000000 -0300
++++ b/src/settings.c	2020-10-01 16:30:00.886746802 -0300
+@@ -194,6 +194,10 @@
+     {
+         screen_info->params->placement_mode = PLACE_MOUSE;
+     }
++    else if (!g_ascii_strcasecmp ("none", value))
++    {
++        screen_info->params->placement_mode = PLACE_NONE;
++    }
+     else
+     {
+         screen_info->params->placement_mode = PLACE_CENTER;
+diff --color --unified --recursive --text a/src/settings.h b/src/settings.h
+--- a/src/settings.h	2019-06-06 16:14:47.000000000 -0300
++++ b/src/settings.h	2020-10-01 16:29:13.545374495 -0300
+@@ -160,7 +160,8 @@
+ enum
+ {
+     PLACE_MOUSE,
+-    PLACE_CENTER
++    PLACE_CENTER,
++    PLACE_NONE
+ };
+ 
+ struct _Settings
