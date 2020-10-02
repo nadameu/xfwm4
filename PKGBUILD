@@ -1,7 +1,5 @@
-# Maintainer: Andrey Vihrov <andrey.vihrov at gmail.com>
-# Contributor: Christian Hesse <mail@eworm.de>
-# Contributor: Lex Black <autumn-wind at web dot de>
-# Contributor: cute.tec@gmail.com
+# Maintainer: Paulo R. Maurici Jr. <paulo at nadameu dot com dot br>
+# Fork of https://aur.archlinux.org/packages/xfwm4-git 
 
 pkgname=xfwm4-git
 pkgver=4.15.1+13+g5cce56d02
