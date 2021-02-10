@@ -1,0 +1,13 @@
+diff --git a/src/placement.c b/src/placement.c
+index 614f78fa8..f393558ba 100644
+--- a/src/placement.c
++++ b/src/placement.c
+@@ -801,7 +801,7 @@ clientInitPosition (Client * c)
+     }
+     else
+     {
+-        place = TRUE;
++        place = c->class.res_class != "Firefox";
+     }
+ 
+     full_x = MAX (screen_info->params->xfwm_margins[STRUTS_LEFT], rect.x);

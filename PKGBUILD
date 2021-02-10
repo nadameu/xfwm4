@@ -1,10 +1,10 @@
 # Maintainer: Paulo R. Maurici Jr. <paulo at nadameu dot com dot br>
 # Fork of https://aur.archlinux.org/packages/xfwm4-git 
 
-pkgname=xfwm4-git
-pkgver=4.15.1+13+g5cce56d02
+pkgname=xfwm4-git-no-firefox-placement
+pkgver=4.16.1+55+gaf609085b
 pkgrel=1
-pkgdesc="Xfce window manager (git version)"
+pkgdesc="Xfce window manager (git version - patched to disable Firefox windows placement)"
 arch=('i686' 'x86_64')
 url="https://gitlab.xfce.org/xfce/xfwm4"
 license=('GPL2')
@@ -13,8 +13,8 @@ depends=('libxfce4ui' 'libwnck3' 'libxpresent')
 makedepends=('git' 'xfce4-dev-tools' 'exo')
 provides=('xfwm4')
 conflicts=('xfwm4')
-source=("git+https://gitlab.xfce.org/xfce/xfwm4.git" "xfwm4-no-smart-placement.patch")
-sha256sums=('SKIP' '2601de1231e22baf999b347bfda6a3577285dc2e941926a10f689fa872acca67')
+source=("git+https://gitlab.xfce.org/xfce/xfwm4.git" "xfwm4-no-change-position-for-firefox.patch")
+sha256sums=('SKIP' '6c0094b163a7aee307ef566b17779dafbe576cc6cce8392f3a14e5ef5d1f8741')
 
 pkgver() {
   cd xfwm4
@@ -51,7 +51,7 @@ package() {
 prepare() {
   cd xfwm4
 
-  patch --strip=1 --input="${srcdir}/xfwm4-no-smart-placement.patch"
+  patch --strip=1 --input="${srcdir}/xfwm4-no-change-position-for-firefox.patch"
 }
 
 # vim:set ts=2 sw=2 et:

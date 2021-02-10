@@ -1,5 +1,6 @@
 # xfwm4
-Allows one to disable smart placement of windows.
+
+Stops xfwm4 from automatically defining the placement of Firefox windows.
 
 This is intended for use in Arch Linux.
 
